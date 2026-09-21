@@ -1,0 +1,801 @@
+<title>Circuit Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #EEF0E9;
+    --paper-raised: #E3E7DA;
+    --paper-sunken: #E7EADF;
+    --ink: #1B1F1B;
+    --ink-soft: #565C50;
+    --ink-faint: #7B806F;
+    --line: #C9CDBE;
+    --line-strong: #A9AE9B;
+    --accent: #2C4A7C;
+    --accent-ink: #F5F6F0;
+    --management: #9C6B1F;
+    --labor: #96392A;
+    --hr: #1F6E5C;
+    --shadow: rgba(27, 31, 27, 0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #2B2F27;
+      --paper-raised: #363A30;
+      --paper-sunken: #31352B;
+      --ink: #F0EDE2;
+      --ink-soft: #C5C9B9;
+      --ink-faint: #999E89;
+      --line: #4A4F3F;
+      --line-strong: #5F6551;
+      --accent: #93B4E0;
+      --accent-ink: #10151C;
+      --management: #DCB05A;
+      --labor: #DE8E72;
+      --hr: #5FC7A9;
+      --shadow: rgba(0, 0, 0, 0.30);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #2B2F27;
+    --paper-raised: #363A30;
+    --paper-sunken: #31352B;
+    --ink: #F0EDE2;
+    --ink-soft: #C5C9B9;
+    --ink-faint: #999E89;
+    --line: #4A4F3F;
+    --line-strong: #5F6551;
+    --accent: #93B4E0;
+    --accent-ink: #10151C;
+    --management: #DCB05A;
+    --labor: #DE8E72;
+    --hr: #5FC7A9;
+    --shadow: rgba(0, 0, 0, 0.30);
+  }
+
+  * { box-sizing: border-box; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 72px;
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 22px;
+  }
+  .kicker {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  h1 {
+    font-family: "Newsreader", Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    line-height: 1;
+    margin: 6px 0 10px;
+    text-wrap: balance;
+  }
+  .dek {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 1rem;
+    margin: 0 0 16px;
+  }
+  .ledger-stats {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .ledger-stats span:not(:last-child)::after { content: "\2014"; margin-left: 10px; color: var(--line-strong); }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 22px;
+  }
+  .search-field {
+    flex: 1 1 220px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 8px 10px;
+  }
+  .search-field svg { flex: none; color: var(--ink-faint); }
+  .search-field input {
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 13.5px;
+    width: 100%;
+    outline: none;
+  }
+  .search-field input::placeholder { color: var(--ink-faint); }
+
+  .track-toggle { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--ink-soft);
+    border-radius: 2px;
+    padding: 6px 10px 6px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dotcolor, var(--ink-faint)); flex: none; }
+  .chip[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .chip[aria-pressed="true"] .dot { background: var(--dotcolor, var(--paper)); }
+
+  select.region {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 7px 8px;
+  }
+
+  /* ---------- Map / chart ---------- */
+  .map-panel {
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper-raised);
+    padding: 16px 16px 12px;
+    margin-bottom: 8px;
+  }
+  .map-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .map-title {
+    font-family: "Newsreader", serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .map-hint {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: .03em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    max-width: 36ch;
+    text-align: right;
+  }
+  .map-hint.filtering { color: var(--accent); }
+  .map-svg-wrap {
+    position: relative;
+    background: var(--paper-sunken);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #map-svg { display: block; width: 100%; height: auto; cursor: grab; touch-action: none; }
+  #map-svg:active { cursor: grabbing; }
+  .country {
+    fill: var(--paper-raised);
+    stroke: var(--line-strong);
+    stroke-width: 0.5;
+    transition: fill .15s ease, stroke .15s ease;
+  }
+  .country:hover, .country:focus-visible { fill: var(--paper); stroke: var(--accent); outline: none; }
+  .country.active { fill: color-mix(in srgb, var(--accent) 32%, var(--paper-raised)); stroke: var(--accent); stroke-width: 1.25; }
+  .map-zoom-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .map-zoom-controls button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    color: var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .map-zoom-controls button:hover { background: var(--paper-sunken); border-color: var(--accent); }
+  .map-tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    padding: 6px 10px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    white-space: nowrap;
+  }
+  .map-tooltip strong { font-family: "Newsreader", serif; font-style: italic; font-weight: 500; font-size: 13px; color: var(--ink); }
+  .map-tooltip span { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-faint); }
+  .map-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .map-credit {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    text-align: right;
+    padding: 8px 2px 0;
+  }
+  .map-credit a { color: var(--ink-faint); }
+
+  .count-line {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 18px 2px 10px;
+  }
+
+  /* ---------- Groups & rows ---------- */
+  .year-group { margin-top: 28px; }
+  .year-label {
+    font-family: "Newsreader", serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 6px;
+    margin: 0 0 4px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 74px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .row:hover { background: var(--paper-sunken); }
+
+  .stub {
+    font-family: "IBM Plex Mono", monospace;
+    text-align: center;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-right: 2px dashed var(--line-strong);
+    border-radius: 2px 0 0 2px;
+    padding: 6px 4px;
+  }
+  .stub .mon { font-size: 10.5px; letter-spacing: .08em; color: var(--track-color, var(--accent)); font-weight: 500; }
+  .stub .day { font-size: 15px; font-weight: 500; margin: 1px 0; font-variant-numeric: tabular-nums; }
+  .stub .yr { font-size: 10px; color: var(--ink-faint); }
+
+  .entry-name {
+    font-family: "Newsreader", serif;
+    font-weight: 500;
+    font-size: 1.02rem;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .entry-name .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--track-color, var(--accent)); flex: none; }
+  .entry-org {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .entry-meta {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+  .entry-meta .sep { color: var(--line-strong); margin: 0 5px; }
+
+  .status-col {
+    text-align: right;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .status-confirmed { color: var(--hr); }
+  .status-check { color: var(--labor); }
+  .status-col a { display: block; margin-top: 4px; color: var(--ink-faint); text-decoration: none; }
+  .status-col a:hover { color: var(--accent); text-decoration: underline; }
+
+  .empty-state {
+    padding: 40px 10px;
+    text-align: center;
+    color: var(--ink-faint);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 44px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    max-width: 70ch;
+  }
+  footer strong { color: var(--ink-soft); }
+
+  @media (max-width: 620px) {
+    .row {
+      grid-template-columns: 60px 1fr;
+      grid-template-areas: "stub name" "stub status";
+    }
+    .stub { grid-area: stub; }
+    .entry-name, .entry-meta { grid-area: name; }
+    .status-col { grid-area: status; text-align: left; margin-top: 6px; }
+    .status-col a { display: inline; margin: 0 0 0 8px; }
+    .map-head { flex-direction: column; align-items: flex-start; }
+    .map-hint { text-align: left; }
+    .map-zoom-controls button { width: 40px; height: 40px; font-size: 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="kicker">Field Registry &middot; Prototype</span>
+    <h1>Circuit Ledger</h1>
+    <p class="dek">Where the management, labor-relations, and HR / I&#8211;O psychology conference circuit convenes next &#8212; compiled by hand from each learned society&#8217;s own site.</p>
+    <div class="ledger-stats">
+      <span id="stat-total">78 conference series tracked</span>
+      <span id="stat-regions">7 regions</span>
+      <span>ledger checked Sep 2026</span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="search-field">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="Search society, conference, or city&hellip;" autocomplete="off">
+    </div>
+    <div class="track-toggle" id="track-toggle" role="group" aria-label="Filter by field">
+      <button class="chip" data-track="all" aria-pressed="true"><span class="dot"></span>All fields</button>
+      <button class="chip" data-track="management" aria-pressed="true" style="--dotcolor: var(--management)"><span class="dot"></span>Management</button>
+      <button class="chip" data-track="labor" aria-pressed="true" style="--dotcolor: var(--labor)"><span class="dot"></span>Labor</button>
+      <button class="chip" data-track="hr" aria-pressed="true" style="--dotcolor: var(--hr)"><span class="dot"></span>HR &amp; I&#8211;O</button>
+    </div>
+    <select class="region" id="region-select" aria-label="Filter by region">
+      <option value="all">All regions</option>
+      <option value="North America">North America</option>
+      <option value="Europe">Europe</option>
+      <option value="Asia">Asia</option>
+      <option value="Australia &amp; NZ">Australia &amp; NZ</option>
+      <option value="South America">South America</option>
+      <option value="Africa">Africa</option>
+      <option value="Global">Global / rotating</option>
+    </select>
+  </div>
+
+  <div class="map-panel">
+    <div class="map-head">
+      <h2 class="map-title">Chart</h2>
+      <div class="map-hint" id="map-hint">Click a country to narrow the ledger to it &middot; click again to clear</div>
+    </div>
+    <div class="map-svg-wrap">
+      <svg id="map-svg" viewBox="0 0 960 470"></svg>
+      <div class="map-zoom-controls">
+        <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+        <button type="button" id="zoom-out" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="zoom-reset" aria-label="Reset zoom">&#8634;</button>
+      </div>
+      <div class="map-tooltip" id="map-tooltip" hidden></div>
+      <div class="map-loading" id="map-loading">Loading chart&hellip;</div>
+    </div>
+    <div class="map-credit">Country boundaries: <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a> (Natural Earth, public domain) &middot; rendered with <a href="https://d3js.org/" target="_blank" rel="noopener">D3.js</a></div>
+  </div>
+
+  <div class="count-line" id="count-line">Showing 78 of 78 entries</div>
+
+  <main id="results"></main>
+
+  <footer>
+    <p><strong>What this is:</strong> a hand-curated seed list, not a live feed. Each society publishes its own dates and venue &#8212; there is no shared API across academic conferences the way there is for, say, road races. Every row here traces back to the society's own site; rows marked <span class="status-check">verify on site</span> mean the date, venue, or both were still unconfirmed at last check.</p>
+    <p>Tracked bodies span the Academy of Management network and its regional chapters (AOM, EAM, MWAM, SWAM, SMA, WAM), continental and national academies (EURAM, BAM, EGOS, ANZAM, IACMR, AAOM, AFAM, CLADEA, the Iberoamerican Academy, NFF, VHB, the Irish Academy, AEDEM, INDAM, ASAC, ANPAD, JABA, AIB's South Asia and MENA chapters, the Turkish National Management Congress, EuroMed Academy of Business, MEEA), labor &amp; employment relations and labor-studies bodies (LERA, ILERA, BUIRA, ILPC, ALERA, AIRAANZ, CIRA/ACRI, the BSA's Work, Employment and Society conference, WCSA, LLRN, ISLSSL, SSLH, LAWCHA, LRAN, the ILO's Regulating for Decent Work network, the ESA's and DGS's Sociology of Work sections, IREC, ISLE, GLU, AASLE, ALAST, LERASA, SASA, JIST, AFS, AIDLASS), HR &amp; organizational-psychology associations (SIOP, EAWOP, AHRD and its regional chapters, ICAP, the BPS Division of Occupational Psychology, EAOHP, GfA, ANPAD's EnGPR conference, AGRH, JAIOP, KSIOP, NAOP, HRIC), conflict-management and socio-economics bodies (IACM, SASE), and the strategy and federation bodies SMS and IFSAM.</p>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const DATA = [
+  { name: "AOM Annual Meeting", org: "Academy of Management", track: "management", region: "Europe", country: "Austria", city: "Vienna, Austria", start: "2027-07-30", end: "2027-08-03", cadence: "Annual", status: "confirmed", url: "https://www.aom.org/news/aom-2027-annual-meeting-update/" },
+  { name: "EAM Conference", org: "Eastern Academy of Management", track: "management", region: "North America", country: "United States of America", city: "Arlington, VA, USA (Washington DC metro)", approxYear: 2027, cadence: "Annual", status: "check", url: "https://eaom.org/EAM-2027" },
+  { name: "ANZAM Conference", org: "Australia & New Zealand Academy of Management", track: "management", region: "Australia & NZ", country: "Australia", city: "Newcastle, Australia", start: "2026-12-01", end: "2026-12-03", cadence: "Annual", status: "confirmed", url: "https://anzamconference.org/" },
+  { name: "EURAM Annual Conference", org: "European Academy of Management", track: "management", region: "Europe", country: "Netherlands", city: "Amsterdam, Netherlands", start: "2027-06-22", end: "2027-06-25", cadence: "Annual", status: "confirmed", url: "https://euram.academy/" },
+  { name: "BAM Annual Conference", org: "British Academy of Management", track: "management", region: "Europe", country: "United Kingdom", city: "UK &mdash; venue tbc", start: "2027-09-06", end: "2027-09-10", cadence: "Annual", status: "check", url: "https://www.bam.ac.uk/" },
+  { name: "EGOS Colloquium", org: "European Group for Organizational Studies", track: "management", region: "Europe", country: "United Kingdom", city: "Liverpool, UK", start: "2027-07-08", end: "2027-07-10", cadence: "Annual", status: "confirmed", url: "https://www.egos.org/" },
+  { name: "IACMR Biennial Conference", org: "Intl. Assoc. for Chinese Management Research", track: "management", region: "Asia", country: "China", city: "Hong Kong SAR", start: "2027-06-02", end: "2027-06-06", cadence: "Biennial", status: "confirmed", url: "https://eng.iacmr.org/" },
+  { name: "CLADEA International Congress", org: "Latin American Council of Management Schools", track: "management", region: "South America", country: "Uruguay", city: "Montevideo, Uruguay", start: "2026-10-26", end: "2026-10-28", cadence: "Annual", status: "confirmed", url: "https://cladea.org/en/" },
+  { name: "EnANPAD", org: "Brazilian Academy of Management (ANPAD)", track: "management", region: "South America", country: "Brazil", city: "Fortaleza, Brazil", start: "2026-09-23", end: "2026-09-25", cadence: "Annual", status: "confirmed", url: "https://eventos.anpad.org.br/en/event/details/147/2131" },
+  { name: "IFSAM Biennial World Congress", org: "Intl. Federation of Scholarly Assoc. of Management", track: "management", region: "Global", city: "Host rotates &mdash; next edition pending", cadence: "Biennial", status: "check", url: "https://www.ifsam.org/" },
+  { name: "Strategic Management Society Conference", org: "Strategic Management Society", track: "management", region: "Europe", country: "Germany", city: "Berlin, Germany", start: "2026-10-17", end: "2026-10-20", cadence: "Annual", status: "confirmed", url: "https://www.strategicmanagement.net/" },
+  { name: "AAOM Main Conference", org: "Asia Academy of Management", track: "management", region: "Asia", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://www.aaom.asia/" },
+  { name: "AFAM Biennial Conference", org: "Africa Academy of Management", track: "management", region: "Africa", city: "Host tbc \u2014 next edition ~2028", cadence: "Biennial", status: "check", url: "https://africaacademyofmanagement.org/" },
+  { name: "ASAC Annual Conference", org: "Administrative Sciences Assoc. of Canada", track: "management", region: "North America", country: "Canada", city: "Charlottetown, PE, Canada", start: "2027-06-24", end: "2027-06-28", cadence: "Annual", status: "confirmed", url: "https://asac.ca/conference/2027-conference/" },
+  { name: "Iberoamerican Academy of Management Conference", org: "Iberoamerican Academy of Management", track: "management", region: "North America", country: "Mexico", city: "Mexico City, Mexico", start: "2027-05-26", end: "2027-05-28", cadence: "Annual", status: "confirmed", url: "https://www.iberoacademy.org/" },
+  { name: "SMA Annual Meeting", org: "Southern Management Association", track: "management", region: "North America", country: "United States of America", city: "St. Pete Beach, FL, USA", start: "2026-10-27", end: "2026-10-31", cadence: "Annual", status: "confirmed", url: "https://smgmt.org/" },
+  { name: "MWAM Conference", org: "Midwest Academy of Management", track: "management", region: "North America", country: "United States of America", city: "St. Paul, MN, USA", approxYear: 2026, cadence: "Annual", status: "check", url: "https://mwaom.org/" },
+  { name: "WAM Annual Conference", org: "Western Academy of Management", track: "management", region: "North America", country: "United States of America", city: "Lihue, HI, USA", start: "2027-03-10", end: "2027-03-13", cadence: "Annual", status: "confirmed", url: "https://www.wamonline.org/2027-conference" },
+  { name: "SWAM Conference", org: "Southwest Academy of Management", track: "management", region: "North America", country: "United States of America", city: "Venue tbc", cadence: "Annual", status: "check", url: "https://swaom.org/swam-2026/" },
+  { name: "NFF Conference", org: "Nordic Academy of Management", track: "management", region: "Europe", country: "Norway", city: "Inland Norway (INN University)", approxYear: 2028, cadence: "Biennial", status: "check", url: "https://nordicacademy.org/nff-conference/" },
+  { name: "VHB Conference", org: "German Academic Assoc. for Business Research", track: "management", region: "Europe", country: "Germany", city: "Münster, Germany", start: "2027-09-10", end: "2027-09-13", cadence: "Annual", status: "confirmed", url: "https://www.vhbonline.org/en/veranstaltungen/alle-veranstaltungen" },
+  { name: "Irish Academy of Management Conference", org: "Irish Academy of Management", track: "management", region: "Europe", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://iamireland.ie/" },
+  { name: "AEDEM International Annual Meeting", org: "AEDEM — European Academy of Management and Business Economics", track: "management", region: "Europe", country: "Spain", city: "Santiago de Compostela, Spain", approxYear: 2027, cadence: "Annual", status: "check", url: "https://redaedem.org/" },
+  { name: "AEDEM International Conference (Americas)", org: "AEDEM — European Academy of Management and Business Economics", track: "management", region: "South America", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://redaedem.org/" },
+  { name: "INDAM Conference", org: "Indian Academy of Management", track: "management", region: "Asia", city: "Host tbc \u2014 next edition ~2028", cadence: "Biennial", status: "check", url: "https://www.indam.in/conferences/" },
+  { name: "JABA Annual Conference", org: "Japan Academy of Business Administration", track: "management", region: "Asia", country: "Japan", city: "Tokyo, Japan", approxYear: 2026, cadence: "Annual", status: "check", url: "https://keiei-gakkai.jp/en/" },
+  { name: "AIB South Asia Chapter Conference", org: "Academy of International Business \u2014 South Asia Chapter", track: "management", region: "Asia", country: "India", city: "Kolkata, India", approxYear: 2026, cadence: "Annual", status: "check", url: "https://aib-southasia.org/" },
+  { name: "AIB-MENA Chapter Conference", org: "Academy of International Business \u2014 Middle East &amp; North Africa Chapter", track: "management", region: "Asia", country: "United Arab Emirates", city: "Sharjah, UAE", start: "2026-12-10", end: "2026-12-12", cadence: "Annual", status: "confirmed", url: "https://mena.aib.world/" },
+  { name: "Ulusal Y\u00f6netim ve Organizasyon Kongresi", org: "Turkish National Congress on Management and Organization", track: "management", region: "Asia", country: "Turkey", city: "Host tbc \u2014 34th edition was Sivas, May 2026", cadence: "Annual", status: "check", url: "https://www.2026yonorgkongresi.com/" },
+  { name: "EuroMed Academy of Business Conference", org: "EuroMed Research Business Institute", track: "management", region: "Europe", country: "Cyprus", city: "Paphos, Cyprus", start: "2026-09-23", end: "2026-09-25", cadence: "Annual", status: "confirmed", url: "https://euromedacademy.org/conference/" },
+  { name: "MEEA International Conference", org: "Middle East Economic Association", track: "management", region: "Africa", country: "Egypt", city: "Cairo, Egypt", start: "2026-10-20", end: "2026-10-21", cadence: "Annual", status: "confirmed", url: "https://meeaweb.org/conferences" },
+  { name: "SASE Annual Conference", org: "Society for the Advancement of Socio-Economics", track: "management", region: "Global", city: "Host rotates &mdash; check site", cadence: "Annual", status: "check", url: "https://sase.org/" },
+  { name: "IACM Annual Conference", org: "International Association for Conflict Management", track: "management", region: "Global", city: "Host tbc — 39th meeting was Vienna, Jul 2026", cadence: "Annual", status: "check", url: "https://iafcm.org/" },
+  { name: "LERA@ASSA Meeting", org: "Labor and Employment Relations Assoc.", track: "labor", region: "North America", country: "United States of America", city: "Washington, DC, USA", start: "2027-01-03", end: "2027-01-05", cadence: "Annual", status: "confirmed", url: "https://www.leraweb.org/lera-assa-meeting-january-2027" },
+  { name: "ILPC", org: "International Labour Process Conference", track: "labor", region: "Europe", country: "Spain", city: "Jerez de la Frontera, Spain", start: "2027-03-31", end: "2027-04-02", cadence: "Annual", status: "confirmed", url: "https://www.ilpc.org.uk/" },
+  { name: "LERA Annual Meeting", org: "Labor and Employment Relations Assoc.", track: "labor", region: "North America", country: "United States of America", city: "Baltimore, MD, USA", start: "2027-06-10", end: "2027-06-13", cadence: "Annual", status: "confirmed", url: "https://lera.memberclicks.net/" },
+  { name: "BUIRA Annual Conference", org: "British Universities Industrial Relations Assoc.", track: "labor", region: "Europe", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://www.buira.net/" },
+  { name: "WES Conference", org: "British Sociological Assoc. &mdash; Work, Employment and Society", track: "labor", region: "Europe", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://www.britsoc.co.uk/events/key-bsa-events/" },
+  { name: "ALERA National Conference", org: "Australian Labour and Employment Relations Assoc.", track: "labor", region: "Australia & NZ", country: "Australia", city: "Varies by state branch", cadence: "Annual", status: "check", url: "https://www.alera.asn.au/" },
+  { name: "AIRAANZ Conference", org: "Assoc. of Industrial Relations Academics of Australia and New Zealand", track: "labor", region: "Australia & NZ", country: "Australia", city: "Brisbane, Australia", start: "2027-02-03", end: "2027-02-05", cadence: "Annual", status: "confirmed", url: "https://www.airaanz.org/conference/airaanz-conference-2027" },
+  { name: "CIRA/ACRI Annual Conference", org: "Canadian Industrial Relations Assoc.", track: "labor", region: "North America", country: "Canada", city: "Gatineau, QC, Canada", start: "2027-06-08", end: "2027-06-10", cadence: "Annual", status: "confirmed", url: "https://www.cira-acri.ca/conference" },
+  { name: "ILERA Asian Regional Congress", org: "Intl. Labour and Employment Relations Assoc.", track: "labor", region: "Asia", city: "Host rotates &mdash; check site", cadence: "Irregular", status: "check", url: "https://ilo-ilera.org/regional-congresses/" },
+  { name: "ILERA World Congress", org: "Intl. Labour and Employment Relations Assoc.", track: "labor", region: "Global", country: "Australia", city: "Sydney, Australia", start: "2027-08-30", end: "2027-09-03", cadence: "Triennial", status: "confirmed", url: "https://ilo-ilera.org/" },
+  { name: "WCSA Annual Conference", org: "Working-Class Studies Association", track: "labor", region: "North America", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://workingclassassn.org/conferences/" },
+  { name: "LLRN8 Conference", org: "Labour Law Research Network", track: "labor", region: "Europe", country: "Italy", city: "Cagliari, Italy", start: "2027-06-28", end: "2027-06-30", cadence: "Biennial", status: "confirmed", url: "https://llrn8cagliari.it/" },
+  { name: "ISLSSL European Congress", org: "Intl. Society for Labour and Social Security Law", track: "labor", region: "Europe", city: "Host tbc \u2014 check site", cadence: "Periodic", status: "check", url: "https://islssl.org/world-congress/" },
+  { name: "ISLSSL World Congress", org: "Intl. Society for Labour and Social Security Law", track: "labor", region: "North America", country: "Mexico", city: "Mexico City, Mexico", approxYear: 2027, cadence: "Periodic", status: "check", url: "https://islssl.org/world-congress/" },
+  { name: "SSLH Chartism Day", org: "Society for the Study of Labour History", track: "labor", region: "Europe", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://sslh.org.uk/" },
+  { name: "Regulating for Decent Work Conference", org: "International Labour Organization &amp; university partners", track: "labor", region: "Global", country: "Switzerland", city: "Geneva, Switzerland (recurring)", cadence: "Periodic", status: "check", url: "https://www.ilo.org/research-and-publications/regulating-decent-work-network" },
+  { name: "LAWCHA Conference", org: "Labor and Working-Class History Assoc.", track: "labor", region: "North America", city: "Venue tbc", approxYear: 2027, cadence: "Biennial (odd years)", status: "check", url: "https://lawcha.org/events/" },
+  { name: "LRAN National Conference", org: "Labor Research &amp; Action Network", track: "labor", region: "North America", city: "Host tbc \u2014 check site", cadence: "Annual", status: "check", url: "https://www.lranetwork.org/events/" },
+  { name: "ESA Conference", org: "European Sociological Association — Sociology of Work Research Network", track: "labor", region: "Europe", city: "Host tbc \u2014 next edition ~2028", cadence: "Biennial", status: "check", url: "https://www.europeansociology.org/" },
+  { name: "IREC", org: "Industrial Relations in Europe Conference", track: "labor", region: "Europe", city: "Host rotates &mdash; check site", cadence: "Periodic", status: "check", url: "https://ilo-ilera.org/other-events/" },
+  { name: "ISLE Annual Conference", org: "Indian Society of Labour Economics", track: "labor", region: "Asia", country: "India", city: "Varanasi, India", start: "2026-12-19", end: "2026-12-21", cadence: "Annual", status: "confirmed", url: "https://www.isleijle.org/conferences/" },
+  { name: "GLU Conference", org: "Global Labour University", track: "labor", region: "Asia", country: "Philippines", city: "Quezon City, Philippines", start: "2026-12-07", end: "2026-12-09", cadence: "Annual", status: "confirmed", url: "https://global-labour-university.org/events/" },
+  { name: "AASLE Conference", org: "Asian and Australasian Society of Labour Economics", track: "labor", region: "Asia", country: "China", city: "Beijing, China", start: "2026-12-10", end: "2026-12-12", cadence: "Annual", status: "confirmed", url: "https://www.aasle.org/" },
+  { name: "ALAST Congress", org: "Latin American Assoc. for Labor Studies", track: "labor", region: "South America", city: "Host tbc — check site", cadence: "Periodic", status: "check", url: "http://alast.info/congresos/" },
+  { name: "JIST", org: "Journées Internationales de Sociologie du Travail", track: "labor", region: "Europe", city: "Host tbc — 19th edition was Madrid, Jul 2026", cadence: "Biennial", status: "check", url: "https://jist2026.sciencesconf.org/" },
+  { name: "AFS Congress", org: "Association Française de Sociologie — RT25 Travail, organisations, emploi", track: "labor", region: "Europe", country: "France", city: "Host tbc — 11th congress was Lyon, 2026", cadence: "Biennial", status: "check", url: "https://afs-socio.fr/rt/rt25/" },
+  { name: "AIDLASS Giornate di Studio", org: "Associazione Italiana di Diritto del Lavoro e della Sicurezza Sociale", track: "labor", region: "Europe", country: "Italy", city: "Host tbc — 2026 edition was Rome", cadence: "Annual", status: "check", url: "https://aidlass.it/" },
+  { name: "DGS Congress", org: "German Sociological Assoc. — Arbeits- und Industriesoziologie section", track: "labor", region: "Europe", country: "Germany", city: "Mainz, Germany", start: "2026-09-28", end: "2026-10-02", cadence: "Biennial", status: "confirmed", url: "https://kongress2026.soziologie.de/" },
+  { name: "ILERA Africa Regional Congress", org: "Intl. Labour and Employment Relations Assoc. &amp; LERASA", track: "labor", region: "Africa", city: "Host tbc — last held Victoria Falls, Zambia (2024)", cadence: "Irregular", status: "check", url: "https://ilo-ilera.org/regional-congresses/" },
+  { name: "SASA Annual Congress", org: "South African Sociological Association — Economic &amp; Industrial Sociology", track: "labor", region: "Africa", country: "South Africa", city: "Host tbc — rotates among SA universities", cadence: "Annual", status: "check", url: "https://sociology.africa/annual-conference" },
+  { name: "SIOP Annual Conference", org: "Society for Industrial and Organizational Psychology", track: "hr", region: "North America", country: "United States of America", city: "National Harbor, MD, USA", start: "2027-04-14", end: "2027-04-17", cadence: "Annual", status: "confirmed", url: "https://www.siop.org/events/the-annual-conference/future-conferences/", note: "Dates already public through 2030" },
+  { name: "DOP Annual Conference", org: "British Psychological Society — Div. of Occupational Psychology", track: "hr", region: "Europe", country: "United Kingdom", city: "Nottingham, UK", start: "2027-01-20", end: "2027-01-22", cadence: "Annual", status: "confirmed", url: "https://www.bps.org.uk/event/division-occupational-psychology-annual-conference-2027" },
+  { name: "Asian Academy of HRD Conference", org: "Academy of Human Resource Development", track: "hr", region: "Asia", country: "Japan", city: "Tokyo, Japan", start: "2026-11-06", end: "2026-11-08", cadence: "Annual", status: "confirmed", url: "https://ahrd.org/international-conferences/" },
+  { name: "University Forum for HRD Conference", org: "Academy of Human Resource Development", track: "hr", region: "Europe", country: "United Kingdom", city: "Edinburgh, UK", start: "2027-06-09", end: "2027-06-11", cadence: "Annual", status: "confirmed", url: "https://ahrd.org/international-conferences/" },
+  { name: "EAWOP Congress", org: "European Assoc. of Work and Organizational Psychology", track: "hr", region: "Europe", country: "France", city: "Lyon, France", start: "2027-05-26", end: "2027-05-29", cadence: "Biennial", status: "confirmed", url: "https://eawop.org/congress" },
+  { name: "ICAP", org: "Intl. Association of Applied Psychology", track: "hr", region: "Europe", country: "Switzerland", city: "Zurich, Switzerland", start: "2030-07-08", end: "2030-07-12", cadence: "Quadrennial", status: "confirmed", url: "https://www.iaapsy.org/icap" },
+  { name: "EAOHP Conference", org: "European Academy of Occupational Health Psychology", track: "hr", region: "Europe", city: "Host tbc \u2014 next edition ~2028", cadence: "Biennial", status: "check", url: "https://eaohp.org/" },
+  { name: "GfA Frühjahrskongress", org: "Gesellschaft für Arbeitswissenschaft", track: "hr", region: "Europe", country: "Germany", city: "Braunschweig, Germany", approxYear: 2027, cadence: "Annual", status: "check", url: "https://www.gesellschaft-fuer-arbeitswissenschaft.de/" },
+  { name: "ANPAD EnGPR Conference", org: "Brazilian Academy of Management (ANPAD) — HR &amp; Industrial Relations", track: "hr", region: "South America", country: "Brazil", city: "Host tbc — 9th edition was São Paulo, Jun 2026", cadence: "Periodic", status: "check", url: "https://anpad.com.br/en/event/details/150" },
+  { name: "AGRH Congress", org: "Association Francophone de Gestion des Ressources Humaines", track: "hr", region: "Europe", country: "France", city: "Limoges, France", start: "2026-10-21", end: "2026-10-23", cadence: "Annual", status: "confirmed", url: "https://www.agrh.fr/" },
+  { name: "JAIOP Annual Conference", org: "Japanese Assoc. of Industrial / Organizational Psychology", track: "hr", region: "Asia", country: "Japan", city: "Host tbc — 41st meeting was Keio University, Sep 2026", cadence: "Annual", status: "check", url: "https://www.jaiop.jp/en/summary" },
+  { name: "KSIOP Conference", org: "Korean Society for Industrial and Organizational Psychology", track: "hr", region: "Asia", country: "South Korea", city: "Host tbc — check site", cadence: "Annual", status: "check", url: "https://www.ksiop.or.kr/" },
+  { name: "NAOP Annual Convention", org: "National Academy of Psychology, India", track: "hr", region: "Asia", country: "India", city: "Host tbc — 35th convention was IIM Shillong, Apr–May 2026", cadence: "Annual", status: "check", url: "https://naopindia.org/" },
+  { name: "HRIC", org: "Human Resources International Conference (AOM HR Division)", track: "hr", region: "Global", city: "Host rotates — 6th edition was IIM Bangalore, India, Apr 2026", cadence: "Annual", status: "check", url: "https://www.iimb.ac.in/6th-hric-2026" },
+  { name: "AHRD International Research Conference", org: "Academy of Human Resource Development", track: "hr", region: "Global", city: "Host rotates &mdash; check site", cadence: "Annual", status: "check", url: "https://ahrd.org/" }
+];
+
+const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const trackLabel = { management: "Management", labor: "Labor & employment", hr: "HR & I&#8211;O psych" };
+
+function fmtStub(e) {
+  if (e.start) {
+    const d = new Date(e.start + "T00:00:00");
+    return { mon: MONTHS[d.getMonth()], day: String(d.getDate()), yr: d.getFullYear() };
+  }
+  if (e.approxYear) return { mon: "TBD", day: "", yr: e.approxYear };
+  return { mon: "&mdash;", day: "TBD", yr: "" };
+}
+
+function dateRangeText(e) {
+  if (e.start) {
+    const s = new Date(e.start + "T00:00:00");
+    const en = new Date(e.end + "T00:00:00");
+    const sMon = MONTHS[s.getMonth()], eMon = MONTHS[en.getMonth()];
+    const range = (e.start === e.end) ? `${sMon} ${s.getDate()}` :
+      (sMon === eMon) ? `${sMon} ${s.getDate()}&ndash;${en.getDate()}` :
+      `${sMon} ${s.getDate()}&ndash;${eMon} ${en.getDate()}`;
+    return `${range}, ${s.getFullYear()} &middot; ${e.cadence}`;
+  }
+  if (e.approxYear) return `${e.approxYear} &mdash; exact dates TBD &middot; ${e.cadence}`;
+  return `${e.cadence} &mdash; next date pending`;
+}
+
+function sortKey(e) {
+  return e.start || (e.approxYear ? `${e.approxYear}-13-01` : "9999-99-99");
+}
+
+function groupKey(e) {
+  if (e.start) return String(new Date(e.start + "T00:00:00").getFullYear());
+  if (e.approxYear) return String(e.approxYear);
+  return "pending";
+}
+
+function rowHTML(e) {
+  const stub = fmtStub(e);
+  return `
+    <div class="row" style="--track-color: var(--${e.track})">
+      <div class="stub">
+        <div class="mon">${stub.mon}</div>
+        <div class="day">${stub.day}</div>
+        <div class="yr">${stub.yr}</div>
+      </div>
+      <div>
+        <div class="entry-name"><span class="dot"></span>${e.name} <span class="entry-org">${e.org}</span></div>
+        <div class="entry-meta">${dateRangeText(e)}<span class="sep">&middot;</span>${e.city}<span class="sep">&middot;</span>${trackLabel[e.track]}${e.note ? `<span class="sep">&middot;</span>${e.note}` : ""}</div>
+      </div>
+      <div class="status-col">
+        <span class="${e.status === 'confirmed' ? 'status-confirmed' : 'status-check'}">${e.status === 'confirmed' ? 'confirmed' : 'verify on site'}</span>
+        <a href="${e.url}" target="_blank" rel="noopener">society site &rarr;</a>
+      </div>
+    </div>`;
+}
+
+let activeCountry = null;
+
+function activeFilters() {
+  return {
+    q: document.getElementById('search').value.trim().toLowerCase(),
+    region: document.getElementById('region-select').value,
+    tracks: [...document.querySelectorAll('.chip[data-track]:not([data-track="all"])')]
+      .filter(c => c.getAttribute('aria-pressed') === 'true')
+      .map(c => c.dataset.track)
+  };
+}
+
+function matchesFilters(e, f) {
+  if (!f.tracks.includes(e.track)) return false;
+  if (f.region !== 'all' && e.region !== f.region) return false;
+  if (f.q) {
+    const hay = `${e.name} ${e.org} ${e.city}`.toLowerCase();
+    if (!hay.includes(f.q)) return false;
+  }
+  return true;
+}
+
+function countryCount(countryName) {
+  const f = activeFilters();
+  return DATA.filter(e => e.country === countryName && matchesFilters(e, f)).length;
+}
+
+function render() {
+  const f = activeFilters();
+  const filtered = DATA.filter(e => {
+    if (!matchesFilters(e, f)) return false;
+    if (activeCountry && e.country !== activeCountry) return false;
+    return true;
+  }).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+
+  document.getElementById('count-line').textContent = `Showing ${filtered.length} of ${DATA.length} entries`;
+
+  const results = document.getElementById('results');
+  if (filtered.length === 0) {
+    results.innerHTML = `<div class="empty-state">No entries match those filters &mdash; try widening the search.</div>`;
+  } else {
+    const groups = {};
+    const order = [];
+    filtered.forEach(e => {
+      const key = groupKey(e);
+      if (!groups[key]) { groups[key] = []; order.push(key); }
+      groups[key].push(e);
+    });
+    order.sort((a, b) => a === 'pending' ? 1 : b === 'pending' ? -1 : a.localeCompare(b));
+
+    results.innerHTML = order.map(key => `
+      <section class="year-group">
+        <h2 class="year-label">${key === 'pending' ? 'Recurring &mdash; next date pending' : key}</h2>
+        ${groups[key].map(rowHTML).join('')}
+      </section>
+    `).join('');
+  }
+
+  document.querySelectorAll('.country').forEach(p => {
+    p.classList.toggle('active', p.dataset.name === activeCountry);
+  });
+
+  const hint = document.getElementById('map-hint');
+  if (activeCountry) {
+    hint.textContent = `Filtering to ${activeCountry} — click it again to clear`;
+    hint.classList.add('filtering');
+  } else {
+    hint.textContent = 'Click a country to narrow the ledger to it · click again to clear';
+    hint.classList.remove('filtering');
+  }
+}
+
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('region-select').addEventListener('change', render);
+document.querySelectorAll('.chip[data-track]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    if (chip.dataset.track === 'all') {
+      const turnOn = chip.getAttribute('aria-pressed') !== 'true';
+      document.querySelectorAll('.chip[data-track]').forEach(c => c.setAttribute('aria-pressed', String(turnOn)));
+    } else {
+      const next = chip.getAttribute('aria-pressed') !== 'true';
+      chip.setAttribute('aria-pressed', String(next));
+      const others = [...document.querySelectorAll('.chip[data-track]:not([data-track="all"])')];
+      const allOn = others.every(c => c.getAttribute('aria-pressed') === 'true');
+      document.querySelector('.chip[data-track="all"]').setAttribute('aria-pressed', String(allOn));
+    }
+    render();
+  });
+});
+
+document.getElementById('stat-total').textContent = `${DATA.length} conference series tracked`;
+document.getElementById('stat-regions').textContent = `${new Set(DATA.map(d => d.region)).size} regions`;
+
+render();
+
+/* ---------- Chart: real country borders via D3 + topojson, with zoom and tooltips ---------- */
+fetch('countries-110m.json')
+  .then(r => r.json())
+  .then(topology => {
+    const countries = topojson.feature(topology, topology.objects.countries).features
+      .filter(f => f.properties.name !== 'Antarctica');
+
+    const projection = d3.geoNaturalEarth1();
+    projection.fitSize([960, 470], { type: 'FeatureCollection', features: countries });
+    const pathGen = d3.geoPath(projection);
+
+    const svg = d3.select('#map-svg');
+    const world = svg.append('g').attr('id', 'world');
+    const tooltip = document.getElementById('map-tooltip');
+    const wrapEl = document.querySelector('.map-svg-wrap');
+
+    function positionTooltip(event) {
+      const rect = wrapEl.getBoundingClientRect();
+      tooltip.style.left = (event.clientX - rect.left + 14) + 'px';
+      tooltip.style.top = (event.clientY - rect.top + 14) + 'px';
+    }
+
+    world.selectAll('path.country')
+      .data(countries)
+      .join('path')
+      .attr('class', 'country')
+      .attr('d', pathGen)
+      .attr('data-name', d => d.properties.name)
+      .attr('tabindex', 0)
+      .attr('role', 'button')
+      .attr('aria-label', d => `Filter by ${d.properties.name}`)
+      .on('click', (event, d) => {
+        activeCountry = (activeCountry === d.properties.name) ? null : d.properties.name;
+        render();
+      })
+      .on('keydown', (event, d) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activeCountry = (activeCountry === d.properties.name) ? null : d.properties.name;
+          render();
+        }
+      })
+      .on('pointerenter', (event, d) => {
+        const count = countryCount(d.properties.name);
+        tooltip.innerHTML = `<strong>${d.properties.name}</strong><span>${count} conference${count === 1 ? '' : 's'}</span>`;
+        tooltip.hidden = false;
+        positionTooltip(event);
+      })
+      .on('pointermove', positionTooltip)
+      .on('pointerleave', () => { tooltip.hidden = true; });
+
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([1, 8])
+      .translateExtent([[0, 0], [960, 470]])
+      .extent([[0, 0], [960, 470]])
+      .clickDistance(4)
+      .on('zoom', (event) => world.attr('transform', event.transform));
+
+    svg.call(zoomBehavior);
+
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      svg.transition().duration(200).call(zoomBehavior.scaleBy, 1.6);
+    });
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      svg.transition().duration(200).call(zoomBehavior.scaleBy, 1 / 1.6);
+    });
+    document.getElementById('zoom-reset').addEventListener('click', () => {
+      svg.transition().duration(200).call(zoomBehavior.transform, d3.zoomIdentity);
+    });
+
+    document.getElementById('map-loading').remove();
+  })
+  .catch(() => {
+    document.getElementById('map-loading').textContent = 'Chart unavailable — filters above still work';
+  });
+</script>
