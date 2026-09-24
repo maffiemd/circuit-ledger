@@ -1,4 +1,4 @@
-# Circuit Ledger
+# Conference Finder
 
 A prototype directory tracking when and where management, labor-relations, and HR / I–O psychology academic conferences convene next.
 
